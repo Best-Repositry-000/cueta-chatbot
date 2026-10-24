@@ -16,34 +16,46 @@ export class ConversationController {
 
     @Get('getall')
     getConversations(): Promise<Conversations[]> {
+import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { ConversationService } from './conversations.service';
+import type { Conversation, Message } from './conversation.interface'
+
+@Controller('v1/conversations')
+export class ConversationController {
+    constructor(private readonly conversationService: ConversationService) {};
+
+    @Post()
+    createConversation(@Body() conversation: Conversation){
+        return this.conversationService.createConversation(conversation);
+    }
+
+    @Get()
+    getConversations(): Conversation[]{
         return this.conversationService.getConversations();
     }
 
     @Get(':userId')
-    getConversationsByUserId(@Param('userId', ParseIntPipe) userId: number): Promise<Conversations[]> {
+    getConversationsByUserId(@Param('userId') userId: number): Conversation[] | undefined {
         return this.conversationService.getConversationByUserId(userId);
     }
 
-    @Patch(':id')
-    patchConversation(@Param('id', ParseIntPipe) conversationId: number,
-    @Body() updatedConversation: Partial<Conversations>): Promise<Conversations | null> {
-        return this.conversationService.patchConversation( conversationId, updatedConversation );
+    @Patch(':Id')
+    patchConversation(@Param('Id') conversationId: number, @Body() updatedConversation: Partial<Conversation>): Conversation | undefined {
+        return this.conversationService.patchConversation(conversationId, updatedConversation);
     }
 
-    @Delete(':id')
-    deleteConversation(@Param('id', ParseIntPipe) conversationId: number): Promise<string> {
+    @Delete(':Id')
+    deleteConversation(@Param('Id') conversationId: number): boolean {
         return this.conversationService.deleteConversation(conversationId);
     }
 
     @Post(':conversationId/messages')
-    addMessage(@Param('conversationId', ParseIntPipe) conversationId: number, @Body() message: Message
-    ): Promise<Message | null> {
+    addMessage(@Param('conversationId') conversationId: number, @Body() message: Message): Message | undefined {
         return this.conversationService.addMessage(conversationId, message);
     }
 
     @Get(':conversationId/messages')
-    getMessagesByConversationId(@Param('conversationId', ParseIntPipe) conversationId: number
-    ): Promise<Message[]> {
+    getMessagesByConversationId(@Param('conversationId') conversationId: number): Message[] | undefined {
         return this.conversationService.getMessagesByConversationId(conversationId);
     }
 }

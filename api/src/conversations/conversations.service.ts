@@ -1,58 +1,57 @@
+import { Message, Conversation } from './conversation.interface';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Conversations } from './conversations.entity';
-import { Message } from './message.entity';
 
 @Injectable()
 export class ConversationService {
-    constructor(
-        @InjectRepository(Conversations)
-        private readonly conversationsRepository: Repository<Conversations>,
-        @InjectRepository(Message)
-        private readonly messagesRepository: Repository<Message>,
-    ) {}
+    private messagesRepo: Message[] = [];
+    private conversationsRepo: Conversation[] = [];
 
-    async createConversation(conversation: Conversations): Promise<string> {
-        await this.conversationsRepository.save(conversation);
+    createConversation(conversation: Conversation): string {
+        this.conversationsRepo.push(conversation);
         return 'Conversation created successfully';
     }
 
-    async getConversations(): Promise<Conversations[]> {
-        return this.conversationsRepository.find({relations: {user: true, messages: true}});
+    getConversations() : Conversation[]{
+        return this.conversationsRepo;
     }
 
-    async getConversationByUserId(userId: number): Promise<Conversations[]> {
-        return this.conversationsRepository.find({where: {user: {id: userId}},
-            relations: { user: true, messages: true}});
+    getConversationByUserId(userId: number): Conversation[] | undefined {
+        return this.conversationsRepo.filter(conversation => conversation.userId === userId);
     }
 
-    async patchConversation(conversationId: number, updatedConversation: Partial<Conversations>
-    ): Promise<Conversations | null> {
-        const conversation =
-            await this.conversationsRepository.findOne({ where: {id: conversationId} });
-        if (!conversation) { return null;}
-
-        Object.assign(conversation, updatedConversation);
-        return this.conversationsRepository.save(conversation);
+    patchConversation(conversationId: number, updatedConversation: Partial<Conversation>): Conversation | undefined {
+        const index = this.conversationsRepo.findIndex(conversation => conversation.id === conversationId);
+        if (index === -1) {
+            return undefined;
+        }
+        this.conversationsRepo[index] = { ...this.conversationsRepo[index], ...updatedConversation };
+        return this.conversationsRepo[index];
     }
 
-    async deleteConversation(conversationId: number): Promise<string> {
-        const result = await this.conversationsRepository.delete(conversationId);
-        return result.affected !== 0 ? 'Conversation deleted successfully' : 'Failed to delete conversation';
+    deleteConversation(conversationId: number): boolean {
+        const index = this.conversationsRepo.findIndex(conversation => conversation.id === conversationId);
+        if (index === -1){
+            return false;
+        }
+        this.conversationsRepo.splice(index, 1);
+        return true;
     }
 
-    async addMessage(conversationId: number, message: Message): Promise<Message | null> {
-        const conversation =
-            await this.conversationsRepository.findOne({where: {id: conversationId}});
-        if (!conversation) { return null; }
-
-        message.conversation = conversation;
-        return this.messagesRepository.save(message);
+    addMessage(conversationId: number, message: Message): Message | undefined {
+        const conversation = this.conversationsRepo.find(conversation => conversation.id === conversationId);
+        if (!conversation) {
+            return undefined;
+        }
+        conversation.messages.push(message);
+        this.messagesRepo.push(message);
+        return message;
     }
 
-    async getMessagesByConversationId(conversationId: number): Promise<Message[]> {
-        return this.messagesRepository.find({where: { conversation: { id: conversationId }},
-            relations: { conversation: true } });
+    getMessagesByConversationId(conversationId: number): Message[] | undefined {
+        const conversation = this.conversationsRepo.find(conversation => conversation.id === conversationId);
+        if (!conversation) {
+            return undefined; 
+        }
+        return conversation.messages;
     }
 }
