@@ -14,7 +14,7 @@ export class ConversationController {
         return this.conversationService.createConversation(conversation);
     }
 
-    @Get()
+    @Get('getall')
     getConversations(): Promise<Conversations[]> {
         return this.conversationService.getConversations();
     }

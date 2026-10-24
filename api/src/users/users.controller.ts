@@ -1,5 +1,5 @@
 import {UserService} from './users.service';
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 
 @Controller('users')
 export class UserController {
@@ -10,8 +10,9 @@ export class UserController {
         return await this.userService.createUser(username);
     }
 
-    @Get(':username')
-    async getUser(@Param('username') username: string) {
+    @Post('signup')
+    @HttpCode(HttpStatus.OK) 
+    async getUser(@Body('username') username: string) {
         return await this.userService.getUserByUsername(username);
     }
 }

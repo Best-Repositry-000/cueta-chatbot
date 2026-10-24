@@ -21,12 +21,12 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     UserModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'postgres',
+      host: 'localhost',
       port: 5432,
       username: 'postgres',
       password: 'password',
       database: 'cueta-chatbot',
-      entities: [],
+      autoLoadEntities: true,
       synchronize: true,
     })
   ],
