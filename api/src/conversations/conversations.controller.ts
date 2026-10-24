@@ -1,3 +1,21 @@
+import {Body, Controller, Delete, Get, Param, Patch, Post, ParseIntPipe, } from '@nestjs/common';
+import { ConversationService } from './conversations.service';
+import { Conversations } from './conversations.entity';
+import { Message } from './message.entity';
+
+@Controller('conversations')
+export class ConversationController {
+    constructor(
+        private readonly conversationService: ConversationService,
+    ) {}
+
+    @Post()
+    createConversation(@Body() conversation: Conversations): Promise<string> {
+        return this.conversationService.createConversation(conversation);
+    }
+
+    @Get('getall')
+    getConversations(): Promise<Conversations[]> {
 import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { ConversationService } from './conversations.service';
 import type { Conversation, Message } from './conversation.interface'
